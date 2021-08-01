@@ -24,18 +24,17 @@ function BP_Game_C:SpawnEnemy()
 		local SpawnRotation = UE4.UKismetMathLibrary.FindLookAtRotation(self.SpawnLocation, Target)
 		UE4.UAIBlueprintHelperLibrary.SpawnAIFromClass(self, self.AICharacterClass, nil, self.SpawnLocation, SpawnRotation)		--
 		self.AliveEnemies = self.AliveEnemies + 1
-		if self.AliveEnemies >= self.MaxEnemies then
+		if self.AliveEnemies > self.MaxEnemies then
 			self.AliveEnemies = self.MaxEnemies
-			UE4.UKismetSystemLibrary.K2_PauseTimerDelegate({self, BP_Game_C.SpawnEnemy})
 		end
 	end
 end
 
 function BP_Game_C:NotifyEnemyDied()
-	-- self.AliveEnemies = self.AliveEnemies - 1
-	-- if self.AliveEnemies < 0 then
-	-- 	self.AliveEnemies = 0
-	-- end
+	self.AliveEnemies = self.AliveEnemies - 1
+	if self.AliveEnemies < 0 then
+		self.AliveEnemies = 0
+	end
 end
 
 return BP_Game_C
