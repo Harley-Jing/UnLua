@@ -37,4 +37,8 @@ function BP_AICharacter_C:OnComponentBeginOverlap_Sphere(OverlappedComponent, Ot
 	end
 end
 
+function BP_AICharacter_C:ReceiveDestroyed()
+	self.Mesh:GetAnimInstance():Destroy()
+end
+
 return BP_AICharacter_C
