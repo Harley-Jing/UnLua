@@ -11,4 +11,8 @@ function UMG_Main_C:OnClicked_ExitButton()
 	UE4.UKismetSystemLibrary.ExecuteConsoleCommand(self, "exit")
 end
 
+function UMG_Main_C:Destruct()
+	self:Destroy()
+end
+
 return UMG_Main_C
