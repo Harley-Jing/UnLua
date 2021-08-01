@@ -119,11 +119,8 @@ void FLuaContext::RegisterDelegates()
 #if WITH_EDITOR
     // delegates for PIE
     FEditorDelegates::PreBeginPIE.AddRaw(GLuaCxt, &FLuaContext::PreBeginPIE);
-    FEditorDelegates::BeginPIE.AddRaw(GLuaCxt, &FLuaContext::BeginPIE);
     FEditorDelegates::PostPIEStarted.AddRaw(GLuaCxt, &FLuaContext::PostPIEStarted);
     FEditorDelegates::PrePIEEnded.AddRaw(GLuaCxt, &FLuaContext::PrePIEEnded);
-    FEditorDelegates::EndPIE.AddRaw(GLuaCxt, &FLuaContext::EndPIE);
-    FGameDelegates::Get().GetEndPlayMapDelegate().AddRaw(GLuaCxt, &FLuaContext::OnEndPlayMap);
 #endif
 }
 
@@ -195,7 +192,7 @@ void FLuaContext::CreateState()
         lua_register(L, "NewObject", Global_NewObject);
 
         lua_register(L, "UEPrint", Global_Print);
-        if (FPlatformProperties::RequiresCookedData())
+        //if (FPlatformProperties::RequiresCookedData())
         {
             lua_register(L, "require", Global_Require);             // override 'require' when running with cooked data
         }
@@ -257,16 +254,12 @@ void FLuaContext::SetEnable(bool InEnable)
 {
     if (InEnable)
     {
-        CreateState();
+		bEnable = InEnable;
+		Initialize();
     }
     else
     {
         Cleanup(true);
-    }
-    bEnable = InEnable;
-    if (bEnable)
-    {
-        Initialize();
     }
 }
 
@@ -414,13 +407,22 @@ bool FLuaContext::TryToBindLua(UObjectBaseUtility *Object)
                     FString ModuleName;
                     UObject *DefaultObject = Class->GetDefaultObject();             // get CDO
                     DefaultObject->UObject::ProcessEvent(Func, &ModuleName);        // force to invoke UObject::ProcessEvent(...)
-                    UClass *OuterClass = Func->GetOuterUClass();                    // get UFunction's outer class
-                    Class = OuterClass == InterfaceClass ? Class : OuterClass;      // select the target UClass to bind Lua module
                     if (ModuleName.Len() < 1)
                     {
-                        ModuleName = Class->GetName();
+                        return false;
                     }
-                    return Manager->Bind(Object, Class, *ModuleName, GLuaDynamicBinding.InitializerTableRef);   // bind!!!
+
+					if (!Object->HasAnyFlags(RF_NeedPostLoad | RF_NeedInitialization))
+					{
+						return Manager->Bind(Object, Class, *ModuleName, GLuaDynamicBinding.InitializerTableRef);   // bind!!!
+					}
+					else
+					{
+						AsyncTask(ENamedThreads::GameThread, [this, Object]()
+							{
+								this->TryToBindLua(Object);
+							});
+					}
                 }
                 else
                 {
@@ -766,13 +768,6 @@ void FLuaContext::PreBeginPIE(bool bIsSimulating)
 }
 
 /**
- * Callback for FEditorDelegates::BeginPIE
- */
-void FLuaContext::BeginPIE(bool bIsSimulating)
-{
-}
-
-/**
  * Callback for FEditorDelegates::PostPIEStarted
  */
 void FLuaContext::PostPIEStarted(bool bIsSimulating)
@@ -782,7 +777,7 @@ void FLuaContext::PostPIEStarted(bool bIsSimulating)
         return;
     }
 
-    Manager->GetDefaultInputs();
+    //Manager->GetDefaultInputs();
 
     UEditorEngine *EditorEngine = Cast<UEditorEngine>(GEngine);
     if (EditorEngine)
@@ -806,24 +801,9 @@ void FLuaContext::PostPIEStarted(bool bIsSimulating)
  */
 void FLuaContext::PrePIEEnded(bool bIsSimulating)
 {
-    //bIsPIE = false;
-}
-
-/**
- * Callback for FEditorDelegates::EndPIE
- */
-void FLuaContext::EndPIE(bool bIsSimulating)
-{
-}
-
-/**
- * Callback for FGameDelegates::EndPlayMapDelegate
- */
-void FLuaContext::OnEndPlayMap()
-{
     bIsPIE = false;
     Cleanup(true);
-    Manager->CleanupDefaultInputs();
+    //Manager->CleanupDefaultInputs();
     ServerWorld = nullptr;
     LoadedWorlds.Empty();
     CandidateInputComponents.Empty();

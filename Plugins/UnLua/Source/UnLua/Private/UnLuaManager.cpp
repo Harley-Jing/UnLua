@@ -48,6 +48,11 @@ UUnLuaManager::UUnLuaManager()
     AnimNotifyFunc = Class->FindFunctionByName(FName("TriggerAnimNotify"));
 }
 
+UUnLuaManager::~UUnLuaManager()
+{
+	CleanupDefaultInputs();
+}
+
 /**
  * Bind a Lua module for a UObject
  */
@@ -66,7 +71,7 @@ bool UUnLuaManager::Bind(UObjectBaseUtility *Object, UClass *Class, const TCHAR 
     check(Object->GetClass()->IsChildOf(Class));
 #endif
 
-    if (!RegisterClass(L, Object->GetClass()))              // register class first
+    if (!RegisterClass(L, Class))              // register class first
     {
         return false;
     }
@@ -535,10 +540,7 @@ void UUnLuaManager::OnActorSpawned(AActor *Actor)
         return;
     }
 
-    if (AttachedActors.Contains(Actor))
-    {
-        Actor->OnDestroyed.AddDynamic(this, &UUnLuaManager::OnActorDestroyed);      // bind a callback for destroying actor
-    }
+    Actor->OnDestroyed.AddDynamic(this, &UUnLuaManager::OnActorDestroyed);      // bind a callback for destroying actor 
 }
 
 /**

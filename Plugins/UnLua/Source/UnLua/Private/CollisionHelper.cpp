@@ -48,6 +48,9 @@ void FCollisionHelper::Initialize()
 void FCollisionHelper::Cleanup()
 {
     ChannelNames.Empty();
+    CollisionChannelEnum = nullptr;
+    ObjectTypeQueryEnum = nullptr;
+    TraceTypeQueryEnum = nullptr;
 }
 
 int32 FCollisionHelper::ConvertToCollisionChannel(FName Name)           // ECollisionChannel

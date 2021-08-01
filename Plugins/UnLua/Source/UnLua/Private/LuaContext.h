@@ -64,12 +64,8 @@ public:
 
 #if WITH_EDITOR
     void PreBeginPIE(bool bIsSimulating);
-    void BeginPIE(bool bIsSimulating);
     void PostPIEStarted(bool bIsSimulating);
     void PrePIEEnded(bool bIsSimulating);
-    void EndPIE(bool bIsSimulating);
-
-    void OnEndPlayMap();
 
     const TMap<FName, UnLua::IExportedClass*>& GetExportedReflectedClasses() const { return ExportedReflectedClasses; }
     const TMap<FName, UnLua::IExportedClass*>& GetExportedNonReflectedClasses() const { return ExportedNonReflectedClasses; }

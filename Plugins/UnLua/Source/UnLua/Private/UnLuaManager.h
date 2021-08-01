@@ -28,6 +28,8 @@ class UUnLuaManager : public UObject
 public:
     UUnLuaManager();
 
+    ~UUnLuaManager();
+
     bool Bind(UObjectBaseUtility *Object, UClass *Class, const TCHAR *InModuleName, int32 InitializerTableRef = INDEX_NONE);
 
     bool OnModuleHotfixed(const TCHAR *InModuleName);
