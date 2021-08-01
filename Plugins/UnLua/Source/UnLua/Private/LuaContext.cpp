@@ -412,7 +412,7 @@ bool FLuaContext::TryToBindLua(UObjectBaseUtility *Object)
                         return false;
                     }
 
-					if (!Object->HasAnyFlags(RF_NeedPostLoad | RF_NeedInitialization))
+					if (!Object->HasAllFlags(RF_NeedPostLoad | RF_NeedInitialization))
 					{
 						return Manager->Bind(Object, Class, *ModuleName, GLuaDynamicBinding.InitializerTableRef);   // bind!!!
 					}
